@@ -21,7 +21,7 @@ has _irc => sub {
   my $self = shift;
   my $url  = $self->url;
   my $user = $self->_userinfo->[0];
-  my $irc  = Mojo::IRC::UA->new(debug_key => join ':', $user, $self->name);
+  my $irc  = Mojo::IRC::UA->new(track_any => 1, debug_key => join ':', $user, $self->name);
   my $nick;
 
   unless ($nick = $url->query->param('nick')) {
@@ -39,9 +39,10 @@ has _irc => sub {
   $irc->register_default_event_handlers;
   $irc->on(close => sub { $self and $self->_event_irc_close($_[0]) });
   $irc->on(error => sub { $self and $self->_event_irc_error({params => [$_[1]]}) });
+  $irc->on(irc_any => sub { $self->_irc_any($_[1]) unless $_[1]->{handled} });
 
   for my $event (qw(ctcp_action irc_notice irc_privmsg)) {
-    $irc->on($event => sub { $self->_irc_message($event => $_[1]) });
+    $irc->on($event => sub { $self->_irc_message($event => $_[1]) unless $_[1]->{handled}++ });
   }
 
   for my $event (
@@ -51,7 +52,7 @@ has _irc => sub {
     'irc_mode',             'irc_nick',
     'irc_part',             'irc_quit',
     'irc_rpl_myinfo',       'irc_rpl_welcome',
-    'irc_rpl_yourhost',     'irc_topic',
+    'irc_topic',
     )
   {
     my $method = "_event_$event";
@@ -201,6 +202,24 @@ sub _event_irc_close {
 sub _event_irc_error {
   my ($self, $msg) = @_;
   $self->_notice(join ' ', @{$msg->{params}});
+}
+
+sub _irc_any {
+  my ($self, $msg) = @_;
+
+  return if grep { $msg->{command} eq $_ } qw(PONG);
+  shift @{$msg->{params}} if $msg->{params}[0] eq $self->nick;
+
+  $self->emit(
+    message => $self->messages,
+    {
+      from => $msg->{prefix} // $self->id,
+      highlight => Mojo::JSON->false,
+      message   => join(' ', @{$msg->{params}}),
+      ts        => time,
+      type      => 'private',
+    }
+  );
 }
 
 sub _irc_message {
@@ -474,11 +493,6 @@ _event irc_rpl_myinfo => sub {
 
   $self->{myinfo}{$_} = $msg->{params}[$i++] // '' for @keys;
   $self->emit(state => me => $self->{myinfo});
-};
-
-# :hybrid8.debian.local 002 superman :Your host is hybrid8.debian.local[0.0.0.0/6667], running version hybrid-1:8.2.0+dfsg.1-2
-_event irc_rpl_yourhost => sub {
-  $_[0]->_notice($_[1]->{params}[1]);
 };
 
 # :hybrid8.debian.local 001 superman :Welcome to the debian Internet Relay Chat Network superman
