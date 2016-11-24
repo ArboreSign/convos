@@ -32,7 +32,7 @@
       </div>
     </main>
     <main v-if="this.settings.main.indexOf('#connection') == 0">
-      <convos-connection-editor :user="user"></convos-connection-editor>
+      <convos-connection-settings :user="user"></convos-connection-settings>
     </main>
     <main v-if="this.settings.main.indexOf('#create-dialog') == 0">
       <convos-create-dialog :user="user"></convos-create-dialog>

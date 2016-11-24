@@ -221,7 +221,7 @@
     if (this.frozen) {
       this.addMessage({
         type: "error",
-        message: "You are not part of this channel. " + this.frozen
+        message: "You are not part of this dialog. " + this.frozen.ucFirst()
       }, {
         disableUnread: true
       });
