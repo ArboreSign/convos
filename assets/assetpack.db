@@ -627,11 +627,6 @@ checksum=f5982d1768
 format=js
 minified=1
 mtime=1478367198
-[js-min:vue/md-autocomplete.vue]
-checksum=198ce7d2b7
-format=js
-minified=1
-mtime=1473877196
 [js-min:vue/md-input.vue]
 checksum=bfbfae7685
 format=js

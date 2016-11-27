@@ -1,6 +1,6 @@
 <template>
   <div class="input-field col" :class="cols">
-    <textarea lazy v-model="value" class="validate materialize-textarea"
+    <textarea v-model="value" class="validate materialize-textarea"
       :id="id" v-el:input :name="name" :placeholder="placeholder"
       :readonly="readonly"
       :disabled="disabled" :required="required"

@@ -76,6 +76,43 @@ $convos-input-height: 46px;
   .divider { margin: 2rem 0; }
 }
 
+.convos-create-dialog {
+  .rooms {
+    margin-top: -20px;
+
+    .collection {
+      border: 0;
+      border-top: 1px solid $collection-border-color;
+      margin: 0;
+      max-height: 10rem;
+      overflow: hidden;
+      overflow-y: scroll;
+    }
+
+    .collection-item {
+      line-height: 1.5rem;
+      border-top: 1px solid $collection-border-color;
+      border-bottom: 1px solid $collection-border-color;
+      margin-top: -1px;
+      padding: 8px 0;
+      display: block;
+
+      .secondary-content {
+        color: color("grey", "darken-1");
+      }
+
+      &:hover {
+        background-color: $collection-hover-bg-color;
+      }
+
+      &.active {
+        background-color: $collection-hover-bg-color;
+        color: inherit;
+      }
+    }
+  }
+}
+
 .convos-message {
   $dialog-spacing: 4px;
 

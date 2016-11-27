@@ -41,7 +41,6 @@
 < js/core/user.js
 
 # materialize elements
-< vue/md-autocomplete.vue
 < vue/md-input.vue
 < vue/md-option.vue
 < vue/md-select.vue
