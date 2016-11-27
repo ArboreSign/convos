@@ -218,17 +218,14 @@
   };
 
   proto._onJoin = function() {
-    if (this.frozen) {
-      this.addMessage({
-        type: "error",
-        message: this.dialog_id ? "You are not part of this dialog. " + this.frozen.ucFirst() : this.frozen.ucFirst(),
-      }, {
-        disableUnread: true
-      });
-    } else if (!this.messages.length) {
+    if (this.frozen.match(/password/i)) {
+      this.addMessage({type: "password"});
+    }
+    else if (!this.messages.length) {
       var message = this.is_private ? "What do you want to say to " + this.name + "?" : "You have joined " + this.name + ", but no one has said anything as long as you have been here.";
       this.addMessage({message: message, type: "notice"}, {disableUnread: true});
     }
+
     if (Convos.settings.notifications == "default") {
       this.addMessage({type: "enable-notifications"});
     }
