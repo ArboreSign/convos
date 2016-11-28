@@ -261,7 +261,7 @@
         break;
       case "frozen":
         this.getDialog("").frozen = data.frozen;
-        this.user.ensureDialog(data).addMessage({});
+        if (data.frozen) this.user.ensureDialog(data).addMessage({from: this.connection_id, message: data.frozen, type: "error"});
         break;
       case "join":
       case "part":
