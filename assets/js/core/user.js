@@ -67,10 +67,7 @@
         if(!self.email) self.ws.open();
         self.email = xhr.body.email;
         xhr.body.connections.forEach(function(c) { self.ensureConnection(c) });
-        xhr.body.dialogs.forEach(function(d) {
-          d = self.ensureDialog(d);
-          if (d.active) d.emit("active");
-        });
+        xhr.body.dialogs.forEach(function(d) { d = self.ensureDialog(d); });
         self.notifications = xhr.body.notifications.reverse();
         self.unread = xhr.body.unread || 0;
         self.currentPage = "convos-chat";

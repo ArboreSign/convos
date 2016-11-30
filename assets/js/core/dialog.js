@@ -22,27 +22,6 @@
       delete this.last_active;
     }
 
-    this.on("active", function() {
-      this.user.dialogs.forEach(function(d) { if (d.active) d.emit("inactive"); });
-      this.active = true;
-      this.unread = 0;
-      if (!this.activated++) this._load();
-    });
-
-    this.on("inactive", function() {
-      var self = this;
-      this.active = false;
-      Convos.api.setDialogLastRead(
-        {
-          connection_id: this.connection_id,
-          dialog_id: this.dialog_id,
-        }, function(err, xhr) {
-          if (err) return console.log('[setDialogLastRead] ' + JSON.stringify(err)); // TODO
-          self.lastRead = Date.fromAPI(xhr.body.last_read);
-        }
-      );
-    });
-
     this.on("join", this._onJoin);
   };
 
@@ -132,6 +111,22 @@
     return !this.dialog_id ? "device_hub" : this.is_private ? "person" : "group";
   };
 
+  proto.load = function() {
+    var self = this;
+
+    Convos.api[this.messagesMethod](
+      {
+        connection_id: this.connection_id,
+        dialog_id: this.dialog_id
+      }, function(err, xhr) {
+        var messages = xhr.body.messages || [];
+        self.messages = []; // clear old messages on ws reconnect
+        messages.forEach(function(msg) { self.addMessage(msg, {method: "push", disableNotifications: true}) });
+        self._onJoin();
+      }
+    );
+  };
+
   proto.participant = function(data) {
     if (this.dialog_id != data.dialog_id) return;
     if (!data.nick) data.nick = data.new_nick || data.name;
@@ -165,18 +160,23 @@
     }
   };
 
+  proto.setLastRead = function() {
+    Convos.api.setDialogLastRead(
+      {
+        connection_id: this.connection_id,
+        dialog_id: this.dialog_id
+      }, function(err, xhr) {
+        if (err) return console.log('[setDialogLastRead] ' + JSON.stringify(err)); // TODO
+        self.lastRead = Date.fromAPI(xhr.body.last_read);
+      }
+    );
+  };
+
   proto.update = function(attrs) {
     var self = this;
     var frozen = this.frozen;
 
     Object.keys(attrs).forEach(function(n) { self[n] = attrs[n]; });
-    if (attrs.hasOwnProperty("frozen") && attrs.frozen == "" && frozen && !this.is_private) {
-      this.when("active", function() {
-        this.user.ws.when("open", function() {
-          self.connection().send("/names", self, self._setParticipants.bind(self));
-        });
-      });
-    }
 
     if (this.is_private) {
       [this.name, this.connection().nick()].forEach(function(n) {
@@ -187,11 +187,6 @@
     return this;
   };
 
-  proto.when = function(state, cb) {
-    if (state != "active") throw "Only active is supported for now";
-    return this.active ? cb.call(this) : this.once("active", cb);
-  };
-
   proto._endOfHistory = function() {
     if (this.messages[0].loading) {
       this.messages[0].message = "End of history.";
@@ -199,22 +194,6 @@
     else {
       this.addMessage({loading: true, message: "End of history", type: "notice"}, {method: "unshift"});
     }
-  };
-
-  proto._load = function() {
-    var self = this;
-
-    Convos.api[this.messagesMethod](
-      {
-        connection_id: this.connection_id,
-        dialog_id: this.dialog_id
-      }, function(err, xhr) {
-        var messages = xhr.body.messages || [];
-        self.messages = []; // clear old messages on ws reconnect
-        messages.forEach(function(msg) { self.addMessage(msg, {method: "push", disableNotifications: true}) });
-        self._onJoin();
-      }
-    );
   };
 
   proto._onJoin = function() {

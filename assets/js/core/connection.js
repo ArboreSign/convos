@@ -216,7 +216,6 @@
 
   proto._sentJoin = function(msg) {
     var dialog = this.user.ensureDialog(msg);
-    dialog.emit("active").emit("join");
     Convos.settings.main = dialog.href();
   };
 

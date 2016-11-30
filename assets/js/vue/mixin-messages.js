@@ -6,6 +6,12 @@
       return {atBottom: true, offsetElement: null, scrollElement: null};
     },
     watch: {
+      "dialog.active": function(v, o) {
+        if (v == false) return this.dialog.setLastRead();
+        if (this.hasBeenActive) return;
+        this.hasBeenActive = true;
+        this.dialog.load();
+      },
       'settings.screenHeight': function(v, o) {
         this.keepScrollPos();
       },
